@@ -90,6 +90,9 @@ article {
   font-size: 0.8em;
 }
 
+.cell {
+}
+
 @media (max-width: 400px) {
   main {
     width: 100%;

@@ -27,6 +27,10 @@
         }
       }
 
+      function _roundToTwo(n) {
+        return +(Math.round(n + 'e+2') + 'e-2');
+      }
+
       const _tooltipHTML = (d) => `
       ${d.Place} - ${d.Name}, ${d.Nationality} 
         <br>
@@ -37,7 +41,11 @@
       `;
 
       // Populate Data
-      const { baseTemperature, monthlyVariance } = await _fetchData();
+
+      // const { baseTemperature, monthlyVariance } = await _fetchData();
+      const dataset = await _fetchData();
+
+      const { baseTemperature, monthlyVariance } = dataset;
       console.log(baseTemperature);
       console.log(monthlyVariance);
 
@@ -53,6 +61,10 @@
         .domain([minYear, maxYear])
         .range([PADDING, WIDTH - 15]);
 
+      console.log('x 1974', x(new Date('1974')));
+      console.log('x 1700', x(1700));
+      console.log('x 2010', x(2010));
+
       const monthNames = [
         'January',
         'February',
@@ -67,10 +79,10 @@
         'November',
         'December',
       ];
-      const y = d3 // .scaleTime()
+      const y = d3
         .scaleBand()
-        .domain(monthNames.reverse())
-        .range([HEIGHT - PADDING, 10]);
+        .domain(monthNames)
+        .range([10, HEIGHT - PADDING]);
 
       // Axis bars
       const xAxis = d3.axisBottom(x).ticks(20);
@@ -92,35 +104,50 @@
         .attr('height', HEIGHT)
         .attr('viewBox', '0 0 860 450');
 
-      // svg
-      //   .selectAll('circle')
-      //   .data(dataset)
-      //   .enter()
-      //   .append('circle')
-      //   .style('position', 'relative')
-      //   .attr('class', 'dot')
-      //   .attr('cx', (d, i) => x(new Date(String(d.Year))))
-      //   .attr('cy', (d, i) => y(timeData[i]))
-      //   .attr('r', 7)
-      //   .attr('fill', (d) => (d.Doping ? plotColor1 : plotColor2))
-      //   .attr('data-xvalue', (d) => new Date(String(d.Year)))
-      //   .attr('data-yvalue', (d, i) => timeData[i]);
+      svg
+        .selectAll('rect')
+        .data(monthlyVariance)
+        .enter()
+        .append('rect')
+        .attr('class', 'cell')
+        .attr('x', (d) => x(new Date(String(d.year))))
+        .attr('y', (d) => y(monthNames[d.month - 1]))
+        .attr('fill', (d) => {
+          const temp = baseTemperature + +d.variance.toFixed(2);
+          switch (true) {
+            case temp > 10:
+              return 'red';
+            case temp > 8:
+              return 'orange';
+            case temp < 6:
+              return 'skyblue';
+            case temp < 4:
+              return 'blue';
+            default:
+              return 'yellow';
+          }
+        })
+        .attr('width', `${Math.ceil(WIDTH / monthlyVariance.length) + 3}px`)
+        .attr('height', `${Math.ceil(HEIGHT / monthNames.length) - 5}px`)
+        .attr('data-month', (d) => d.month - 1)
+        .attr('data-year', (d) => d.year)
+        .attr('data-temp', (d) => d.variance);
 
       // Tooltip animation
-      // svg
-      //   .selectAll('.dot')
-      //   .on('mouseover', (d, i) => {
-      //     tooltip
-      //       .html(`${_tooltipHTML(d)}`)
-      //       .attr('data-year', `${new Date(String(d.Year))}`)
-      //       .style('visibility', 'visible')
-      //       .style('top', `${y(timeData[i])}px`)
-      //       .style('left', `${x(new Date(String(d.Year))) + 8}px`)
-      //       .style('background', `${d.Doping ? plotColor1 : plotColor2}`);
-      //   })
-      //   .on('mouseout', () => {
-      //     tooltip.style('visibility', 'hidden');
-      //   });
+      svg
+        .selectAll('.dot')
+        .on('mouseover', (d, i) => {
+          tooltip
+            .html(`${_tooltipHTML(d)}`)
+            .attr('data-year', `${new Date(String(d.year))}`)
+            .style('visibility', 'visible')
+            .style('top', `${y(monthNames[d.month - 1]) - 20}px`)
+            .style('left', `${x(new Date(String(d.year)))}px`)
+            .style('background', `#333`);
+        })
+        .on('mouseout', () => {
+          tooltip.style('visibility', 'hidden');
+        });
 
       // Render Axiis bars
       svg
