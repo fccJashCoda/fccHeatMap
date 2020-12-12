@@ -26,44 +26,11 @@
     }
 
     function processData(rawData) {
-      return rawData;
-    }
+      const { baseTemperature, monthlyVariance } = rawData;
 
-    function renderData(dataset) {
-      // Private Function Declarations
       function _roundToTwo(n) {
         return +(Math.round(n + 'e+2') + 'e-2');
       }
-
-      const _tooltipHTML = (d) => `
-      ${d.Place} - ${d.Name}, ${d.Nationality} 
-        <br>
-        Year: ${d.Year} Time: ${d.Time}
-        
-        ${d.Doping ? `<br><span class='warning'>${d.Doping}</span>` : ''}
-
-      `;
-
-      //  Data
-
-      // const { baseTemperature, monthlyVariance } = await _fetchData();
-      // const dataset = await _fetchData();
-
-      const { baseTemperature, monthlyVariance } = dataset;
-      console.log(baseTemperature);
-      console.log(monthlyVariance);
-
-      // Scales
-      const minYear = new Date(
-        String(d3.min(monthlyVariance, (d) => d.year) - 1)
-      );
-      const maxYear = new Date(
-        String(Number(d3.max(monthlyVariance, (d) => d.year)) + 1)
-      );
-      const x = d3
-        .scaleTime()
-        .domain([minYear, maxYear])
-        .range([PADDING, WIDTH - 15]);
 
       const monthNames = [
         'January',
@@ -79,6 +46,78 @@
         'November',
         'December',
       ];
+
+      const newMonthlyVariance = [];
+      for (let data of monthlyVariance) {
+        const variance = _roundToTwo(data.variance);
+        const temperature = _roundToTwo(baseTemperature + variance);
+        const month = monthNames[data.month - 1];
+        const year = data.year;
+
+        newMonthlyVariance.push({ year, variance, temperature, month });
+      }
+
+      return {
+        baseTemperature,
+        monthlyVariance: newMonthlyVariance,
+        monthNames,
+      };
+    }
+
+    function renderData(dataset) {
+      // Private Function Declarations
+      function getTemperatureColor(temperature) {
+        switch (true) {
+          case temperature >= 12.8:
+            return 'crimson';
+          case temperature >= 11.7:
+            return 'orange';
+          case temperature >= 9.6:
+            return 'orange';
+          case temperature >= 8.5:
+            return 'yellow';
+          case temperature >= 7.4:
+            return 'skyblue';
+          case temperature >= 6.3:
+            return 'skyblue';
+          case temperature >= 5.2:
+            return 'skyblue';
+          case temperature >= 4.1:
+            return 'skyblue';
+          case temperature >= 3.0:
+            return 'skyblue';
+          case temperature >= 1.9:
+            return 'skyblue';
+          default:
+            return 'blue';
+        }
+      }
+
+      const _tooltipHTML = (d) => `
+      ${d.Place} - ${d.Name}, ${d.Nationality} 
+        <br>
+        Year: ${d.Year} Time: ${d.Time}
+        
+        ${d.Doping ? `<br><span class='warning'>${d.Doping}</span>` : ''}
+
+      `;
+
+      //  Data
+      const { baseTemperature, monthlyVariance, monthNames } = dataset;
+
+      // Scales
+      const minYear = new Date(
+        String(d3.min(monthlyVariance, (d) => d.year) - 1)
+      );
+      const maxYear = new Date(
+        String(Number(d3.max(monthlyVariance, (d) => d.year)) + 1)
+      );
+
+      const x = d3
+        .scaleTime()
+        .domain([minYear, maxYear])
+        .range([PADDING, WIDTH - 15]);
+
       const y = d3
         .scaleBand()
         .domain(monthNames)
@@ -111,25 +150,11 @@
         .append('rect')
         .attr('class', 'cell')
         .attr('x', (d) => x(new Date(String(d.year))))
-        .attr('y', (d) => y(monthNames[d.month - 1]))
-        .attr('fill', (d) => {
-          const temp = baseTemperature + _roundToTwo(d.variance);
-          switch (true) {
-            case temp > 10:
-              return 'red';
-            case temp > 8:
-              return 'orange';
-            case temp < 6:
-              return 'skyblue';
-            case temp < 4:
-              return 'blue';
-            default:
-              return 'yellow';
-          }
-        })
+        .attr('y', (d) => y(d.month))
+        .attr('fill', (d) => getTemperatureColor(d.temperature))
         .attr('width', `${Math.ceil(WIDTH / monthlyVariance.length) + 3}px`)
         .attr('height', `${Math.ceil(HEIGHT / monthNames.length) - 5}px`)
-        .attr('data-month', (d) => d.month - 1)
+        .attr('data-month', (d) => d.month)
         .attr('data-year', (d) => d.year)
         .attr('data-temp', (d) => d.variance);
 
