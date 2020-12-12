@@ -4,29 +4,33 @@
     const URL = 'http://localhost:5555/api';
     // const URL =
     //   'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json';
-    const WIDTH = 860;
+    // const WIDTH = 860;
+    const WIDTH = 1000;
     const HEIGHT = 500;
     const PADDING = 60;
 
-    const plotColor1 = 'orange';
-    const plotColor2 = 'steelblue';
-
     // Init
-    renderData();
+    const data = await fetchData();
+    const processed = await processData(data);
+    renderData(processed);
 
-    async function renderData() {
-      // Private Function Declarations
-      async function _fetchData() {
-        try {
-          const response = await fetch(URL);
-          const data = await response.json();
-          console.log(data.data);
-          return data.data;
-        } catch (err) {
-          return {};
-        }
+    async function fetchData() {
+      try {
+        const response = await fetch(URL);
+        const data = await response.json();
+        console.log(data.data);
+        return data.data;
+      } catch (err) {
+        return {};
       }
+    }
 
+    function processData(rawData) {
+      return rawData;
+    }
+
+    function renderData(dataset) {
+      // Private Function Declarations
       function _roundToTwo(n) {
         return +(Math.round(n + 'e+2') + 'e-2');
       }
@@ -40,10 +44,10 @@
 
       `;
 
-      // Populate Data
+      //  Data
 
       // const { baseTemperature, monthlyVariance } = await _fetchData();
-      const dataset = await _fetchData();
+      // const dataset = await _fetchData();
 
       const { baseTemperature, monthlyVariance } = dataset;
       console.log(baseTemperature);
@@ -60,10 +64,6 @@
         .scaleTime()
         .domain([minYear, maxYear])
         .range([PADDING, WIDTH - 15]);
-
-      console.log('x 1974', x(new Date('1974')));
-      console.log('x 1700', x(1700));
-      console.log('x 2010', x(2010));
 
       const monthNames = [
         'January',
@@ -102,7 +102,7 @@
         .attr('id', 'title')
         .attr('width', WIDTH)
         .attr('height', HEIGHT)
-        .attr('viewBox', '0 0 860 450');
+        .attr('viewBox', `0 0 ${WIDTH} ${HEIGHT}`);
 
       svg
         .selectAll('rect')
@@ -113,7 +113,7 @@
         .attr('x', (d) => x(new Date(String(d.year))))
         .attr('y', (d) => y(monthNames[d.month - 1]))
         .attr('fill', (d) => {
-          const temp = baseTemperature + +d.variance.toFixed(2);
+          const temp = baseTemperature + _roundToTwo(d.variance);
           switch (true) {
             case temp > 10:
               return 'red';
