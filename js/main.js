@@ -5,9 +5,10 @@
     // const URL =
     //   'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json';
     // const WIDTH = 860;
-    const WIDTH = 1000;
-    const HEIGHT = 500;
-    const PADDING = 60;
+    const WIDTH = 1500;
+    const HEIGHT = 560;
+    const PADDING = 120;
+    // const PADDING = 60;
 
     // Init
     const data = await fetchData();
@@ -69,27 +70,33 @@
       function getTemperatureColor(temperature) {
         switch (true) {
           case temperature >= 12.8:
-            return 'crimson';
+            return '#ff0010';
           case temperature >= 11.7:
-            return 'orange';
-          case temperature >= 9.6:
-            return 'orange';
-          case temperature >= 8.5:
-            return 'yellow';
-          case temperature >= 7.4:
-            return 'skyblue';
-          case temperature >= 6.3:
-            return 'skyblue';
-          case temperature >= 5.2:
-            return 'skyblue';
-          case temperature >= 4.1:
-            return 'skyblue';
-          case temperature >= 3.0:
-            return 'skyblue';
-          case temperature >= 1.9:
-            return 'skyblue';
+            return '#ff2900';
+          case temperature >= 10.6:
+            // return '#ff7900';
+            return '#ff5300';
+          case temperature >= 9.5:
+            return '#ff7e00';
+          // return '#ffa855';
+          case temperature >= 8.3:
+            // return '#ffba75';
+            return '#ffa345';
+          case temperature >= 7.2:
+            return '#ffc486';
+          // return '#ffe4cc';
+          case temperature >= 6.1:
+            // return '#fff0e8';
+            return '#ffd7ae';
+          case temperature >= 5.0:
+            // return '#fff9ff';
+            return '#dbe5ff';
+          case temperature >= 3.9:
+            return '#bed2ff';
+          case temperature >= 2.8:
+            return '#bacfff';
           default:
-            return 'blue';
+            return '#a1bfff';
         }
       }
 
@@ -106,9 +113,7 @@
       const { baseTemperature, monthlyVariance, monthNames } = dataset;
 
       // Scales
-      const minYear = new Date(
-        String(d3.min(monthlyVariance, (d) => d.year) - 1)
-      );
+      const minYear = new Date(String(d3.min(monthlyVariance, (d) => d.year)));
       const maxYear = new Date(
         String(Number(d3.max(monthlyVariance, (d) => d.year)) + 1)
       );
@@ -152,8 +157,8 @@
         .attr('x', (d) => x(new Date(String(d.year))))
         .attr('y', (d) => y(d.month))
         .attr('fill', (d) => getTemperatureColor(d.temperature))
-        .attr('width', `${Math.ceil(WIDTH / monthlyVariance.length) + 3}px`)
-        .attr('height', `${Math.ceil(HEIGHT / monthNames.length) - 5}px`)
+        .attr('width', `${Math.ceil(WIDTH / monthlyVariance.length) + 5}px`)
+        .attr('height', `${Math.ceil(HEIGHT / monthNames.length) - 10}px`)
         .attr('data-month', (d) => d.month)
         .attr('data-year', (d) => d.year)
         .attr('data-temp', (d) => d.variance);
@@ -179,20 +184,30 @@
         .append('g')
         .attr('id', 'x-axis')
         .attr('transform', `translate(0,${HEIGHT - PADDING})`)
+        .style('font', '14px arial')
         .call(xAxis);
 
       svg
         .append('g')
         .attr('id', 'y-axis')
         .attr('transform', `translate(${PADDING}, 0)`)
+        .style('font', '14px arial')
         .call(yAxis);
 
       svg
         .append('text')
-        .attr('x', -HEIGHT / 2 - 30)
-        .attr('y', 15)
+        .attr('x', WIDTH / 2 - 30)
+        .attr('y', HEIGHT - 60)
+        .style('font', '20px arial')
+        .text('Years');
+
+      svg
+        .append('text')
+        .attr('x', -HEIGHT / 2 + 20)
+        .attr('y', 25)
         .attr('transform', `rotate(-90)`)
-        .text('Ascent Time in Minutes');
+        .style('font', '20px arial')
+        .text('Months');
 
       // Legend
       // const legend = svg
