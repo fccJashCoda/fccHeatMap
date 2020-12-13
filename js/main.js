@@ -10,9 +10,13 @@
     const PADDING = 120;
     // const PADDING = 60;
 
+    // DOM queries
+    const temperature = document.getElementById('base-temperature');
+
     // Init
     const data = await fetchData();
     const processed = await processData(data);
+    temperature.textContent = `${processed.baseTemperature}°C`;
     renderData(processed);
 
     async function fetchData() {
@@ -88,7 +92,7 @@
             return '#ffa345';
           case temperature >= 7.2:
             return '#ffc486';
-          // return '#ffe4cc';
+            return '#ffe4cc';
           case temperature >= 6.1:
             // return '#fff0e8';
             return '#ffd7ae';
@@ -179,14 +183,13 @@
           d3.select(this).order().raise().style('stroke', 'black');
           tooltip
             .html(`${_tooltipHTML(d)}`)
-            // .attr('data-year', `${new Date(String(d.year))}`)
             .attr('data-year', `${d.year}`)
             .style('visibility', 'visible')
             .style('top', `${y(d.month) - 65}px`)
             .style('left', `${x(new Date(String(d.year)))}px`);
         })
         .on('mouseout', function () {
-          d3.select(this).style('stroke', 'none');
+          d3.select(this).order().lower().style('stroke', 'none');
           tooltip.style('visibility', 'hidden');
         });
 
@@ -247,7 +250,7 @@
       legend
         .append('text')
         .text('°Celsius to Color Sample')
-        .attr('x', 150)
+        .attr('x', 130)
         .attr('y', 35);
     }
   });
