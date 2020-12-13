@@ -48,20 +48,24 @@
         'December',
       ];
 
+      const tempData = [2.8, 3.9, 5.0, 6.1, 7.2, 8.3, 9.5, 10.6, 11.7, 12.8];
+
       const newMonthlyVariance = [];
       for (let data of monthlyVariance) {
         const variance = _roundToTwo(data.variance);
         const temperature = _roundToTwo(baseTemperature + variance);
         const month = monthNames[data.month - 1];
+        const monthN = data.month - 1;
         const year = data.year;
 
-        newMonthlyVariance.push({ year, variance, temperature, month });
+        newMonthlyVariance.push({ year, variance, temperature, month, monthN });
       }
 
       return {
         baseTemperature,
         monthlyVariance: newMonthlyVariance,
         monthNames,
+        tempData,
       };
     }
 
@@ -94,23 +98,28 @@
           case temperature >= 3.9:
             return '#bed2ff';
           case temperature >= 2.8:
-            return '#bacfff';
-          default:
+            // return '#bacfff';
             return '#a1bfff';
+          default:
+            return '#2020dd';
         }
       }
 
       const _tooltipHTML = (d) => `
-      ${d.Place} - ${d.Name}, ${d.Nationality} 
+      ${d.year} - ${d.month}
         <br>
-        Year: ${d.Year} Time: ${d.Time}
-        
-        ${d.Doping ? `<br><span class='warning'>${d.Doping}</span>` : ''}
-
+        Temperature: ${d.temperature} °C
+        <br> 
+        Difference: ${d.variance} °C
       `;
 
       //  Data
-      const { baseTemperature, monthlyVariance, monthNames } = dataset;
+      const {
+        baseTemperature,
+        monthlyVariance,
+        monthNames,
+        tempData,
+      } = dataset;
 
       // Scales
       const minYear = new Date(String(d3.min(monthlyVariance, (d) => d.year)));
@@ -159,23 +168,25 @@
         .attr('fill', (d) => getTemperatureColor(d.temperature))
         .attr('width', `${Math.ceil(WIDTH / monthlyVariance.length) + 5}px`)
         .attr('height', `${Math.ceil(HEIGHT / monthNames.length) - 10}px`)
-        .attr('data-month', (d) => d.month)
+        .attr('data-month', (d) => d.monthN)
         .attr('data-year', (d) => d.year)
         .attr('data-temp', (d) => d.variance);
 
       // Tooltip animation
       svg
-        .selectAll('.dot')
-        .on('mouseover', (d, i) => {
+        .selectAll('.cell')
+        .on('mouseover', function (d, i) {
+          d3.select(this).order().raise().style('stroke', 'black');
           tooltip
             .html(`${_tooltipHTML(d)}`)
-            .attr('data-year', `${new Date(String(d.year))}`)
+            // .attr('data-year', `${new Date(String(d.year))}`)
+            .attr('data-year', `${d.year}`)
             .style('visibility', 'visible')
-            .style('top', `${y(monthNames[d.month - 1]) - 20}px`)
-            .style('left', `${x(new Date(String(d.year)))}px`)
-            .style('background', `#333`);
+            .style('top', `${y(d.month) - 65}px`)
+            .style('left', `${x(new Date(String(d.year)))}px`);
         })
-        .on('mouseout', () => {
+        .on('mouseout', function () {
+          d3.select(this).style('stroke', 'none');
           tooltip.style('visibility', 'hidden');
         });
 
@@ -210,35 +221,34 @@
         .text('Months');
 
       // Legend
-      // const legend = svg
-      //   .append('g')
-      //   .attr('id', 'legend')
-      //   .attr('transform', `translate(${WIDTH - 140}, ${50})`);
+      const legendX = d3.scaleBand().domain(tempData).range([0, 380]);
 
-      // legend
-      //   .append('rect')
-      //   .attr('stroke', 'white')
-      //   .attr('fill', 'transparent')
-      //   .attr('width', 140)
-      //   .attr('height', 50)
-      //   .attr('x', -20)
-      //   .attr('y', -20);
-      // legend
-      //   .append('rect')
-      //   .attr('fill', plotColor1)
-      //   .attr('width', 10)
-      //   .attr('height', 10)
-      //   .attr('x', -14)
-      //   .attr('y', -10);
-      // legend
-      //   .append('rect')
-      //   .attr('fill', plotColor2)
-      //   .attr('width', 10)
-      //   .attr('height', 10)
-      //   .attr('x', -14)
-      //   .attr('y', 10);
-      // legend.append('text').text('= Doping allegation');
-      // legend.append('text').text('= Clean').attr('y', 20);
+      const legendXAxis = d3.axisBottom(legendX).ticks(11);
+
+      const legend = svg
+        .append('g')
+        .attr('id', 'legend')
+        .attr('transform', `translate(${140}, ${HEIGHT - 40})`);
+
+      legend
+        .selectAll('rect')
+        .data(tempData)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => legendX(d) + 19)
+        .attr('y', (d) => -20)
+        .attr('width', `${(500 - PADDING) / tempData.length}px`)
+        .attr('height', `20px`)
+        .attr('fill', (d) => (d < 12 ? getTemperatureColor(d) : 'transparent'))
+        .style('stroke', (d) => (d < 12 ? '#333' : 'transparent'));
+
+      legend.append('g').attr('id', 'legend-x-axis').call(legendXAxis);
+
+      legend
+        .append('text')
+        .text('°Celsius to Color Sample')
+        .attr('x', 150)
+        .attr('y', 35);
     }
   });
 })();
