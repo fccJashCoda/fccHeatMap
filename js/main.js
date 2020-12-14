@@ -1,14 +1,11 @@
 (() => {
   window.addEventListener('DOMContentLoaded', async () => {
     // Constants
-    const URL = 'http://localhost:5555/api';
-    // const URL =
-    //   'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json';
-    // const WIDTH = 860;
+    const URL =
+      'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json';
     const WIDTH = 1500;
     const HEIGHT = 560;
     const PADDING = 120;
-    // const PADDING = 60;
 
     // DOM queries
     const temperature = document.getElementById('base-temperature');
@@ -19,12 +16,12 @@
     temperature.textContent = `${processed.baseTemperature}°C`;
     renderData(processed);
 
+    // funciton declarations
     async function fetchData() {
       try {
         const response = await fetch(URL);
         const data = await response.json();
-        console.log(data.data);
-        return data.data;
+        return data;
       } catch (err) {
         return {};
       }
@@ -74,35 +71,28 @@
     }
 
     function renderData(dataset) {
-      // Private Function Declarations
-      function getTemperatureColor(temperature) {
+      // Private Functions
+      function _getTemperatureColor(temperature) {
         switch (true) {
           case temperature >= 12.8:
             return '#ff0010';
           case temperature >= 11.7:
             return '#ff2900';
           case temperature >= 10.6:
-            // return '#ff7900';
             return '#ff5300';
           case temperature >= 9.5:
             return '#ff7e00';
-          // return '#ffa855';
           case temperature >= 8.3:
-            // return '#ffba75';
             return '#ffa345';
           case temperature >= 7.2:
             return '#ffc486';
-            return '#ffe4cc';
           case temperature >= 6.1:
-            // return '#fff0e8';
             return '#ffd7ae';
           case temperature >= 5.0:
-            // return '#fff9ff';
             return '#dbe5ff';
           case temperature >= 3.9:
             return '#bed2ff';
           case temperature >= 2.8:
-            // return '#bacfff';
             return '#a1bfff';
           default:
             return '#2020dd';
@@ -169,7 +159,7 @@
         .attr('class', 'cell')
         .attr('x', (d) => x(new Date(String(d.year))))
         .attr('y', (d) => y(d.month))
-        .attr('fill', (d) => getTemperatureColor(d.temperature))
+        .attr('fill', (d) => _getTemperatureColor(d.temperature))
         .attr('width', `${Math.ceil(WIDTH / monthlyVariance.length) + 5}px`)
         .attr('height', `${Math.ceil(HEIGHT / monthNames.length) - 10}px`)
         .attr('data-month', (d) => d.monthN)
@@ -182,6 +172,7 @@
         .on('mouseover', function (d, i) {
           d3.select(this).order().raise().style('stroke', 'black');
           tooltip
+
             .html(`${_tooltipHTML(d)}`)
             .attr('data-year', `${d.year}`)
             .style('visibility', 'visible')
@@ -242,7 +233,7 @@
         .attr('y', (d) => -20)
         .attr('width', `${(500 - PADDING) / tempData.length}px`)
         .attr('height', `20px`)
-        .attr('fill', (d) => (d < 12 ? getTemperatureColor(d) : 'transparent'))
+        .attr('fill', (d) => (d < 12 ? _getTemperatureColor(d) : 'transparent'))
         .style('stroke', (d) => (d < 12 ? '#333' : 'transparent'));
 
       legend.append('g').attr('id', 'legend-x-axis').call(legendXAxis);
